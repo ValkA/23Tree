@@ -68,9 +68,12 @@ void LCRS_BalancedTree::Insert(const Key *nkey, const Value *nval) {
 }
 
 InnerNode* LCRS_BalancedTree::insertAndSplit(InnerNode *x, Node *z) {
+    //children of x
     Node* l = x->leftChild;
     Node* m=(l==NULL?NULL:l->rightSibling);
     Node* r=(m==NULL?NULL:m->rightSibling);
+
+    //2 children
     if(r == NULL){
         if(*z->key < *l->key){
             x->setChildren(z,l,m);
@@ -82,6 +85,7 @@ InnerNode* LCRS_BalancedTree::insertAndSplit(InnerNode *x, Node *z) {
         return NULL;
     }
 
+    //3 children, need to split
     if(*z->key < *l->key){
         x->setChildren(z,l,NULL);
         return new InnerNode(m,r,NULL);
@@ -112,7 +116,7 @@ InnerNode* LCRS_BalancedTree::searchParentOf(const Key *key) const{
     return current;
 }
 
-Value* LCRS_BalancedTree::Search(const Key *key) const {
+LeafNode* LCRS_BalancedTree::_search(const Key *key) const {
     InnerNode* p = searchParentOf(key);
     LeafNode* next = dynamic_cast<LeafNode*>(p->leftChild);
     while(*(next->key) < *key){
@@ -121,7 +125,15 @@ Value* LCRS_BalancedTree::Search(const Key *key) const {
     if(*key < *(next->key)){
         return NULL;
     }
-    return next->value;
+    return next;
+}
+
+Value* LCRS_BalancedTree::Search(const Key *key) const {
+    LeafNode* node = _search(key);
+    if(node == NULL){
+        return NULL;
+    }
+    return node->value;
 }
 
 void LCRS_BalancedTree::print() const {
@@ -154,4 +166,134 @@ void LCRS_BalancedTree::print() const {
             }
         }
     }
+}
+
+void LCRS_BalancedTree::Delete(const Key *dkey) {
+    LeafNode* z = _search(dkey);
+    if(z == NULL){
+        return;
+    }
+    InnerNode* y = dynamic_cast<InnerNode*>(z->parent);
+    //delete z:
+    if (z == y->leftChild){
+        y->leftChild = z->rightSibling;
+    } else if (z == y->leftChild->rightSibling) {
+        y->leftChild->rightSibling = y->leftChild->rightSibling->rightSibling;
+    } else if (z == y->leftChild->rightSibling->rightSibling){
+        y->leftChild->rightSibling->rightSibling = NULL;
+    }
+    delete z;
+    y->size--;
+
+
+    while(y != root && y->degree()<2){
+        y = borrowOrMerge(y);
+        y->size--;
+    }
+
+    if(y == root){
+        if(root->degree()<2){
+            root = dynamic_cast<InnerNode*>(y->leftChild);
+            root->parent = NULL;
+            delete y;
+        }
+    } else {
+        while(y != root){
+            y=dynamic_cast<InnerNode*>(y->parent);
+            y->size--;
+        }
+    }
+
+
+
+}
+
+InnerNode *LCRS_BalancedTree::borrowOrMerge(InnerNode *y) {
+    InnerNode* z = dynamic_cast<InnerNode*>(y->parent);
+    InnerNode* zl = dynamic_cast<InnerNode*>(z->leftChild);
+    InnerNode* zm = dynamic_cast<InnerNode*>(zl->rightSibling);
+    InnerNode* zr = dynamic_cast<InnerNode*>(zm->rightSibling);
+    if(y == zl){
+        InnerNode* x = zm;
+        Node* xl = x->leftChild;
+        Node* xm = xl->rightSibling;
+        Node* xr = xm->rightSibling;
+        if(xr != NULL) {
+            y->setChildren(y->leftChild, xl, NULL);
+            x->setChildren(xm, xr, NULL);
+        } else {
+            x->setChildren(y->leftChild, xl, xm);
+            delete y;
+            z->setChildren(zm, zr, NULL);
+        }
+    } else if(y == zm){
+        InnerNode* x = zl;
+        Node* xl = x->leftChild;
+        Node* xm = xl->rightSibling;
+        Node* xr = xm->rightSibling;
+        if(xr != NULL){
+            x->setChildren(xl,xm,NULL);
+            y->setChildren(xr, y->leftChild, NULL);
+        } else {
+            x->setChildren(xm,xl,y->leftChild);
+            delete y;
+            z->setChildren(zl,zr, NULL);
+        }
+    } else if(y == zr) {
+        InnerNode *x = zm;
+        Node *xl = x->leftChild;
+        Node *xm = xl->rightSibling;
+        Node *xr = xm->rightSibling;
+        if (xr != NULL) {
+            x->setChildren(xl, xm, NULL);
+            y->setChildren(xr, y->leftChild, NULL);
+        } else {
+            x->setChildren(xl, xm, y->leftChild);
+            delete y;
+            z->setChildren(zl, zm, NULL);
+        }
+    }
+    return z;
+}
+
+unsigned int LCRS_BalancedTree::getSize() const {
+    return root->size;
+}
+
+unsigned LCRS_BalancedTree::Rank(const Key *key) const {
+    Node* c = _search(key);
+    if(c == NULL){
+        return 0;
+    }
+    unsigned rank = c->size;
+    for(InnerNode* p = dynamic_cast<InnerNode*>(c->parent); p!=NULL; c=p, p=dynamic_cast<InnerNode*>(p->parent)){
+        for(Node* s = p->leftChild; s!=c; s = s->rightSibling){
+            rank += s->size;
+        }
+    }
+    return rank;
+}
+
+const Key *LCRS_BalancedTree::Select(unsigned index) const {
+    InnerNode* current = root;
+    Node* next = current->leftChild;
+    unsigned sum = 0;
+
+    //children path while
+    while(next != NULL){
+        //brothers while
+        while(sum + next->size < index){
+            sum += next->size;
+            next = next -> rightSibling;
+            if(next == NULL) {
+                return NULL;
+            }
+        }
+        if(sum + next->size == index && dynamic_cast<LeafNode*>(next) != NULL){
+            return next->key;//TODO: should we return clone of next?
+        }
+        current = dynamic_cast<InnerNode*>(next);
+        next = current->leftChild;
+    }
+    return NULL;
 }

@@ -45,13 +45,17 @@ InnerNode::InnerNode(Node *l, Node *m, Node *r) : Node(NULL,NULL){
 }
 
 void InnerNode::updateKey() {
+    this->size = 0;
+    // update key
     Node* c = this->leftChild;
     Key* k;
     while(c){
-        k = c->key;
+        k = c->key;// update key
+        this->size += c->size;// update size
         c = c->rightSibling;
     }
 
+    // make sure no 2 pointers to the same key
     if(k != this->key){
         delete this->key;
         this->key = k->clone();

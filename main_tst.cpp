@@ -5,6 +5,8 @@
 #include <string>
 #include <climits>
 #include <cstdlib>
+#include <assert.h>     /* assert */
+
 #include "LCRS_BalancedTree.h"
 using namespace std;
 
@@ -49,23 +51,238 @@ private:
     string value;
 };
 
-int main(){
+void TEST_INSERT_SEARCH(){
+    MyKey a(-1), b(101);
+    LCRS_BalancedTree tree(&a,&b);
+    assert(tree.getSize() == 0);
+
+    MyKey k(7);
+    assert(tree.Search(&k)==NULL);
+    MyValue v("seven");
+    tree.Insert(&k, &v);
+    assert(((MyValue*)tree.Search(&k))->get_value()==v.get_value());
+    assert(tree.getSize() == 1);
+
+    k.set_key(10);
+    v.set_value("ten");
+    assert(tree.Search(&k)==NULL);
+    tree.Insert(&k, &v);
+    assert(((MyValue*)tree.Search(&k))->get_value()==v.get_value());
+    assert(tree.getSize() == 2);
+
+    k.set_key(17);
+    v.set_value("SeVeNtEeN!");
+    assert(tree.Search(&k)==NULL);
+    tree.Insert(&k, &v);
+    assert(((MyValue*)tree.Search(&k))->get_value()==v.get_value());
+    assert(tree.getSize() == 3);
+
+    cout << "TEST_INSERT_SEARCH passed" <<endl;
+}
+
+void TEST_DELETE(){
+    MyKey a(-1), b(101);
+    LCRS_BalancedTree tree(&a,&b);
+    assert(tree.getSize() == 0);
+
+    MyKey k(7);
+    assert(tree.Search(&k)==NULL);
+    MyValue v("seven");
+    tree.Insert(&k, &v);
+    assert(((MyValue*)tree.Search(&k))->get_value()==v.get_value());
+    assert(tree.getSize() == 1);
+
+    k.set_key(10);
+    v.set_value("ten");
+    assert(tree.Search(&k)==NULL);
+    tree.Insert(&k, &v);
+    assert(((MyValue*)tree.Search(&k))->get_value()==v.get_value());
+    assert(tree.getSize() == 2);
+
+    k.set_key(17);
+    v.set_value("SeVeNtEeN!");
+    assert(tree.Search(&k)==NULL);
+    tree.Insert(&k, &v);
+    assert(((MyValue*)tree.Search(&k))->get_value()==v.get_value());
+    assert(tree.getSize() == 3);
+
+    tree.Delete(&k);
+    assert(tree.Search(&k)==NULL);
+    assert(tree.getSize() == 2);
+
+    k.set_key(7);
+    tree.Delete(&k);
+    assert(tree.Search(&k)==NULL);
+    assert(tree.getSize() == 1);
+
+    k.set_key(10);
+    tree.Delete(&k);
+    assert(tree.Search(&k)==NULL);
+    assert(tree.getSize() == 0);
+
+    cout << "TEST_DELETE passed" <<endl;
+}
+
+
+
+void TEST_RANK(){
     MyKey a(-1), b(101);
     LCRS_BalancedTree tree(&a,&b);
 
-    MyKey k(7);
-    MyValue v("seven");
+    MyKey k(0);
+    assert(tree.Search(&k)==NULL);
+    MyValue v("0!");
     tree.Insert(&k, &v);
-    k.set_key(10);
-    v.set_value("ten");
-    tree.Insert(&k, &v);
-    k.set_key(9);
-    v.set_value("nine");
-    tree.Insert(&k, &v);
-    k.set_key(8);
-    v.set_value("eight");
-    tree.Insert(&k, &v);
+    assert(((MyValue*)tree.Search(&k))->get_value()==v.get_value());
 
-    tree.print();
+    k.set_key(10);
+    v.set_value("10!");
+    assert(tree.Search(&k)==NULL);
+    tree.Insert(&k, &v);
+    assert(((MyValue*)tree.Search(&k))->get_value()==v.get_value());
+
+    k.set_key(50);
+    v.set_value("50!");
+    assert(tree.Search(&k)==NULL);
+    tree.Insert(&k, &v);
+    assert(((MyValue*)tree.Search(&k))->get_value()==v.get_value());
+
+    k.set_key(40);
+    v.set_value("40!");
+    assert(tree.Search(&k)==NULL);
+    tree.Insert(&k, &v);
+    assert(((MyValue*)tree.Search(&k))->get_value()==v.get_value());
+
+    k.set_key(30);
+    v.set_value("30!");
+    assert(tree.Search(&k)==NULL);
+    tree.Insert(&k, &v);
+    assert(((MyValue*)tree.Search(&k))->get_value()==v.get_value());
+
+    k.set_key(60);
+    v.set_value("60!");
+    assert(tree.Search(&k)==NULL);
+    tree.Insert(&k, &v);
+    assert(((MyValue*)tree.Search(&k))->get_value()==v.get_value());
+
+    k.set_key(20);
+    v.set_value("20!");
+    assert(tree.Search(&k)==NULL);
+    tree.Insert(&k, &v);
+    assert(((MyValue*)tree.Search(&k))->get_value()==v.get_value());
+
+    k.set_key(-1);
+    assert(tree.Rank(&k)==0);
+    k.set_key(0);
+    assert(tree.Rank(&k)==1);
+    k.set_key(10);
+    assert(tree.Rank(&k)==2);
+    k.set_key(20);
+    assert(tree.Rank(&k)==3);
+    k.set_key(30);
+    assert(tree.Rank(&k)==4);
+    k.set_key(40);
+    assert(tree.Rank(&k)==5);
+    k.set_key(50);
+    assert(tree.Rank(&k)==6);
+    k.set_key(60);
+    assert(tree.Rank(&k)==7);
+    k.set_key(99);
+    assert(tree.Rank(&k)==0);
+
+    //TODO: what is tree.Rank(infinity) and tree.Rank(-infinity)
+    //TODO: what c++ we should use? 11? 14?
+
+
+    cout << "TEST_RANK passed" <<endl;
+}
+
+void TEST_SELECT(){
+    MyKey a(-1), b(101);
+    LCRS_BalancedTree tree(&a,&b);
+
+    MyKey k(0);
+    assert(tree.Search(&k)==NULL);
+    MyValue v("0!");
+    tree.Insert(&k, &v);
+    assert(((MyValue*)tree.Search(&k))->get_value()==v.get_value());
+
+    k.set_key(10);
+    v.set_value("10!");
+    assert(tree.Search(&k)==NULL);
+    tree.Insert(&k, &v);
+    assert(((MyValue*)tree.Search(&k))->get_value()==v.get_value());
+
+    k.set_key(50);
+    v.set_value("50!");
+    assert(tree.Search(&k)==NULL);
+    tree.Insert(&k, &v);
+    assert(((MyValue*)tree.Search(&k))->get_value()==v.get_value());
+
+    k.set_key(40);
+    v.set_value("40!");
+    assert(tree.Search(&k)==NULL);
+    tree.Insert(&k, &v);
+    assert(((MyValue*)tree.Search(&k))->get_value()==v.get_value());
+
+    k.set_key(30);
+    v.set_value("30!");
+    assert(tree.Search(&k)==NULL);
+    tree.Insert(&k, &v);
+    assert(((MyValue*)tree.Search(&k))->get_value()==v.get_value());
+
+    k.set_key(60);
+    v.set_value("60!");
+    assert(tree.Search(&k)==NULL);
+    tree.Insert(&k, &v);
+    assert(((MyValue*)tree.Search(&k))->get_value()==v.get_value());
+
+    k.set_key(20);
+    v.set_value("20!");
+    assert(tree.Search(&k)==NULL);
+    tree.Insert(&k, &v);
+    assert(((MyValue*)tree.Search(&k))->get_value()==v.get_value());
+
+    k.set_key(-1);
+    assert(tree.Rank(&k)==0);
+    k.set_key(0);
+    assert(tree.Rank(&k)==1);
+    k.set_key(10);
+    assert(tree.Rank(&k)==2);
+    k.set_key(20);
+    assert(tree.Rank(&k)==3);
+    k.set_key(30);
+    assert(tree.Rank(&k)==4);
+    k.set_key(40);
+    assert(tree.Rank(&k)==5);
+    k.set_key(50);
+    assert(tree.Rank(&k)==6);
+    k.set_key(60);
+    assert(tree.Rank(&k)==7);
+    k.set_key(99);
+    assert(tree.Rank(&k)==0);
+
+    assert(((MyKey*)tree.Select(0))->get_key() == -1);
+    assert(((MyKey*)tree.Select(1))->get_key() == 0);
+    assert(((MyKey*)tree.Select(2))->get_key() == 10);
+    assert(((MyKey*)tree.Select(3))->get_key() == 20);
+    assert(((MyKey*)tree.Select(4))->get_key() == 30);
+    assert(((MyKey*)tree.Select(5))->get_key() == 40);
+    assert(((MyKey*)tree.Select(6))->get_key() == 50);
+    assert(((MyKey*)tree.Select(7))->get_key() == 60);
+    assert((MyKey*)tree.Select(8) == NULL);
+
+    //TODO: what is tree.Rank(infinity) and tree.Rank(-infinity)
+    //TODO: what c++ we should use? 11? 14?
+
+
+    cout << "TEST_SELECT passed" <<endl;
+}
+
+int main(){
+    TEST_INSERT_SEARCH();
+    TEST_DELETE();
+    TEST_RANK();
+    TEST_SELECT();
     return 0;
 }
