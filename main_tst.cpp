@@ -2,7 +2,7 @@
 // Created by ValkA on 02-Jan-19.
 //
 #include <iostream>
-#include <string>
+#include <stdlib.h>
 #include <climits>
 #include <cstdlib>
 #include <assert.h>     /* assert */
@@ -279,10 +279,36 @@ void TEST_SELECT(){
     cout << "TEST_SELECT passed" <<endl;
 }
 
+void TEST_PRINT_RANGE(){
+    MyKey a(-1), b(101);
+    LCRS_BalancedTree tree(&a,&b);
+
+    MyKey k(0);
+    MyValue v("0!");
+
+    for(int i=20; i<=70; i+=1){
+        k.set_key(i);
+        char val[] = {'v','=',' ',' ',' ',0};
+        itoa (i, val+2, 10);
+        v.set_value(val);
+        assert(tree.Search(&k)==NULL);
+        tree.Insert(&k, &v);
+        assert(((MyValue*)tree.Search(&k))->get_value()==v.get_value());
+    }
+
+
+    MyKey k1(30);
+    MyKey k2(60);
+    tree.Print_Values(&k1, &k2);
+
+    cout << "TEST_SELECT passed" <<endl;
+}
+
 int main(){
     TEST_INSERT_SEARCH();
     TEST_DELETE();
     TEST_RANK();
     TEST_SELECT();
+    TEST_PRINT_RANGE();
     return 0;
 }

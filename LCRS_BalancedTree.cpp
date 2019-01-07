@@ -297,3 +297,42 @@ const Key *LCRS_BalancedTree::Select(unsigned index) const {
     }
     return NULL;
 }
+
+void LCRS_BalancedTree::Print_Values(const Key *key1, const Key *key2) const {
+    InnerNode* p = searchParentOf(key1);
+    Node* x = p->leftChild;
+    while(*(x->key) < *key1){
+        x = x->rightSibling;
+    }
+    int from = PARENT_SIBLING;
+    while(x!=NULL) {
+        if(from == PARENT_SIBLING){
+            InnerNode* innerNode = dynamic_cast<InnerNode*>(x);
+            if(innerNode!=NULL){
+                x = innerNode->leftChild;
+            } else {
+                LeafNode* node = dynamic_cast<LeafNode*>(x);
+                if(node!=NULL && node->value!=NULL) {
+                    if(*key2 < *(node->key)){
+                        return;
+                    }
+                    node->value->print();
+                }
+
+                if(x->rightSibling!=NULL){
+                    x = x->rightSibling;
+                } else {
+                    from = CHILD;
+                    x = x->parent;
+                }
+            }
+        } else {
+            if(x->rightSibling!=NULL){
+                from = PARENT_SIBLING;
+                x = x->rightSibling;
+            } else {
+                x = x->parent;
+            }
+        }
+    }
+}

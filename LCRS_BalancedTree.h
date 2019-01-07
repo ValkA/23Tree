@@ -19,7 +19,7 @@ public:
     Value* Search(const Key* key) const;
     unsigned Rank(const Key* key) const;
     const Key* Select(unsigned index) const;
-//    void Print_Values(const Key* key1, const Key* key2) const;
+    void Print_Values(const Key* key1, const Key* key2) const;
     void print() const;
     unsigned int getSize() const;
 private:
