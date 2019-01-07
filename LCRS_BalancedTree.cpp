@@ -136,36 +136,28 @@ Value* LCRS_BalancedTree::Search(const Key *key) const {
     return node->value;
 }
 
-void LCRS_BalancedTree::print() const {
-    Node* x = root;
-    int from = PARENT_SIBLING;
-    while(x!=NULL) {
-        if(from == PARENT_SIBLING){
-            InnerNode* innerNode = dynamic_cast<InnerNode*>(x);
-            if(innerNode!=NULL){
-                x = innerNode->leftChild;
-            } else {
-                LeafNode* node = dynamic_cast<LeafNode*>(x);
-                if(node!=NULL && node->value!=NULL) {
-                    node->value->print();
-                }
-
-                if(x->rightSibling!=NULL){
-                    x = x->rightSibling;
-                } else {
-                    from = CHILD;
-                    x = x->parent;
-                }
-            }
-        } else {
-            if(x->rightSibling!=NULL){
-                from = PARENT_SIBLING;
-                x = x->rightSibling;
-            } else {
-                x = x->parent;
-            }
+void _print(Node* root, int d){
+    if (dynamic_cast<LeafNode*>(root)!=NULL){
+        LeafNode* leafNode = dynamic_cast<LeafNode*>(root);
+        for(int i=0; i<d*5; ++i) std::cout<<" ";
+        if(leafNode->value) leafNode->value->print();
+//        else leafNode->key->print();
+        std::cout << std::endl;
+    } else {
+        InnerNode* innerNode = dynamic_cast<InnerNode*>(root);
+        Node* child = innerNode->leftChild;
+        while(child!=NULL){
+            _print(child, d+1);
+            for(int i=0; i<d*5; ++i) std::cout<<" ";
+//            if(child->rightSibling!= NULL || child == innerNode->leftChild) innerNode->key->print();
+            std::cout << std::endl;
+            child = child->rightSibling;
         }
     }
+}
+
+void LCRS_BalancedTree::print() const {
+    _print(root, 0);
 }
 
 void LCRS_BalancedTree::Delete(const Key *dkey) {
@@ -235,7 +227,7 @@ InnerNode *LCRS_BalancedTree::borrowOrMerge(InnerNode *y) {
             x->setChildren(xl,xm,NULL);
             y->setChildren(xr, y->leftChild, NULL);
         } else {
-            x->setChildren(xm,xl,y->leftChild);
+            x->setChildren(xl,xm,y->leftChild);// here was (xm,xl,y->leftChild) by mistake
             delete y;
             z->setChildren(zl,zr, NULL);
         }
