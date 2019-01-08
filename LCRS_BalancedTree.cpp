@@ -191,9 +191,10 @@ void LCRS_BalancedTree::Delete(const Key *dkey) {
         }
     } else {
         while(y != root){
+            y->updateKey();
             y=dynamic_cast<InnerNode*>(y->parent);
-            y->size--;
         }
+        y->updateKey();//another bug, was size-- and key was not updated
     }
 
 
